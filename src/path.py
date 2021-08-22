@@ -31,9 +31,14 @@ class Path:
     def Depth(self): return len(self.Parts)
         
     # 呼出元ディレクトリからの相対パス
-    def here(self, path): return str(pathlib.Path(pathlib.Path(inspect.stack()[1].filename).parent, v).resolve())
-    def depth(self, path): return len(list(pathlib.Path(path).resolve().parts))
+    def here(self, path): return str(pathlib.Path(pathlib.Path(inspect.stack()[1].filename).parent, '' if path is None else path.lstrip('/')).resolve())
+    def current(self, path): return str(pathlib.Path(pathlib.Path(os.getcwd()), '' if path is None else path.lstrip('/')).resolve())
+    def depth(self, path):
+        path = '' if path is None else path
+        p = path if os.path.isabs(path) else pathlib.Path(pathlib.Path(inspect.stack()[1].filename, path))
+        return len(list(pathlib.Path(p).resolve().parts))
     def here_parent(self, num=1): return self.parent(pathlib.Path(inspect.stack()[1].filename).resolve())
+    def current_parent(self, num=1): return self.parent(os.getcwd())
     def parent(self, path, num=1):
         if num < 1: raise ValueError(f'遡る階層数は1以上の自然数にしてください。num={num}')
         p = pathlib.Path(path).resolve()
