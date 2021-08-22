@@ -5,12 +5,6 @@ from string import Template
 from collections import namedtuple
 
 class Path:
-#    def __init__(self, base=None):
-#        self.__path = pathlib.Path(inspect.stack()[1].filename if base is None else base)
-#    @property
-#    def Path(self): return self.__path
-#    @Path.setter
-#    def Path(self, v): self.__path = v
     @property
     def This(self): return str(pathlib.Path(inspect.stack()[1].filename).resolve())
     @property
@@ -18,7 +12,7 @@ class Path:
     @property
     def Current(self): return str(pathlib.Path(os.getcwd()).resolve())
     @Current.setter
-    def Current(self, v): os.chdir(v) # カレントディレクトリを指定パスに変更する
+    def Current(self, v): os.chdir(v)
     @property
     def Name(self): return str(pathlib.Path(inspect.stack()[1].filename).resolve().name)
     @property
@@ -29,25 +23,28 @@ class Path:
     def Parts(self): return list(pathlib.Path(inspect.stack()[1].filename).resolve().parts)
     @property
     def Depth(self): return len(self.Parts)
-        
-    # 呼出元ディレクトリからの相対パス
+
     def here(self, path): return str(pathlib.Path(pathlib.Path(inspect.stack()[1].filename).parent, '' if path is None else path.lstrip('/')).resolve())
     def current(self, path): return str(pathlib.Path(pathlib.Path(os.getcwd()), '' if path is None else path.lstrip('/')).resolve())
     def depth(self, path):
-        path = '' if path is None else path
-        p = path if os.path.isabs(path) else pathlib.Path(pathlib.Path(inspect.stack()[1].filename, path))
-        return len(list(pathlib.Path(p).resolve().parts))
-    def here_parent(self, num=1): return self.parent(pathlib.Path(inspect.stack()[1].filename).resolve())
-    def current_parent(self, num=1): return self.parent(os.getcwd())
+        if path is None or '' == path: return len(pathlib.Path(inspect.stack()[1].filename).parts)
+        p = path if os.path.isabs(path) else pathlib.Path(pathlib.Path(inspect.stack()[1].filename).parent, path)
+        return len(pathlib.Path(p).resolve().parts)
+    def here_parent(self, num=1): return self.parent(self.Here, num)
+    def current_parent(self, num=1): return self.parent(os.getcwd(), num)
     def parent(self, path, num=1):
         if num < 1: raise ValueError(f'遡る階層数は1以上の自然数にしてください。num={num}')
         p = pathlib.Path(path).resolve()
         if len(p.parts) <= num: raise ValueError(f'遡る階層数が多すぎます。引数numの値は{len(p.parts)-1}までです。{str(p)}')
-#        pl = list(p.parents)
-#        return str(p if num <= 0 else pl[num - 1])
         return str(p if num < 1 else p.parents[num - 1])
-    def name(self, path): return str(pathlib.Path(path).resolve().name)
-    def stem(self, path): return str(pathlib.Path(path).resolve().stem)
-    def ext(self, path): return str(pathlib.Path(path).resolve().suffix)
+    def name(self, path):
+        if path is None or '' == path: return pathlib.Path(inspect.stack()[1].filename).name
+        return pathlib.Path(path).resolve().name
+    def stem(self, path):
+        if path is None or '' == path: return pathlib.Path(inspect.stack()[1].filename).stem
+        return pathlib.Path(path).resolve().stem
+    def ext(self, path):
+        if path is None or '' == path: return pathlib.Path(inspect.stack()[1].filename).suffix
+        return pathlib.Path(path).resolve().suffix
 Path = Path()
 
